@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        
+<mapper namespace="com.xinyan.crowdfunding.dao.UserMapper">
+<sql id="userColumn">
+  id, user_name, account, password, email
+</sql>
+<!-- 查询用户:根据帐号和密码 -->
+<select id="queryUserByAccountAndPassword" resultType="User">
+	select 
+	<include refid="userColumn" />
+	from tb_user
+	where account = #{account} and password = #{password}
+</select>
+<!-- 用户分页查询界面 -->
+<select id="queryUserByCondition" resultType="User">
+    select
+    <include refid="userColumn" />
+    from tb_user
+    <where>
+      <if test="account != null">
+      <bind name="_account" value="'%' + account + '%'"/>
+       account like #{_account}  
+      </if>
+    </where>
+     order by update_time desc
+</select>
+<!-- 新增用户 -->
+<insert id="addUser">
+    insert into tb_user(account, user_name, password, email, create_time)
+    values (#{account},#{userName},#{password},#{email},#{createTime})
+</insert>
+<!-- 根据id查询用户 -->
+<select id="queryUserById" resultType="User">
+    select
+    <include refid="userColumn" />
+    from tb_user
+    where id = #{id}
+</select>
+<!-- 根据id更新用户 -->
+<update id="updateUserById">
+    update tb_user 
+    set account = #{account}, user_name = #{userName}, email = #{email}
+    where id = #{id}
+</update>
+<!-- 根据id删除用户 -->
+<delete id="deleteUserById">
+    delete from tb_user
+    where id = #{id}
+</delete>
+<!-- 批量删除 -->
+<delete id="batchDeleteUser">
+    delete from tb_user
+    where id in
+    <foreach collection="array" item="id" open="(" separator="," close=")">
+    #{id}
+    </foreach>
+</delete>
+<!-- 根据用户id查询角色 -->
+<select id="queryRoleByUserId" resultType="Role">
+   SELECT
+	tr.role_name,
+	tur.role_id id 
+   FROM
+	tb_user_role tur,
+	tb_role tr 
+   WHERE
+	tur.role_id = tr.id 
+	AND tur.user_id = #{id}
+</select>
+<!-- 分配角色 -->
+<insert id="insertAssignRole">
+   insert into tb_user_role(user_id,role_id)
+   values
+   <foreach collection="roleIds" separator="," item="roleId">
+   (#{userId},#{roleId})
+   </foreach>
+</insert>
+<!-- 用户移除角色 -->
+<delete id="deleteAssignRole">
+   delete from tb_user_role
+   where user_id = #{userId}
+   and role_id in
+   <foreach collection="roleIds"  item="roleId"  open="(" separator="," close=")">
+     #{roleId}   
+   </foreach>
+</delete>
+<!-- 根据id查询用户权限 -->
+<select id="queryPermissionById" resultType="Permission">
+   SELECT * 
+   FROM
+	tb_menu 
+   WHERE
+   id IN ( SELECT permission_id FROM tb_role_menu WHERE role_id IN ( SELECT role_id FROM tb_user_role WHERE user_id = #{id} ) )
+</select>
+</mapper>
