@@ -18,7 +18,7 @@ import com.xinyan.crowdfunding.domain.User;
 import com.xinyan.crowdfunding.domain.UserCondition;
 import com.xinyan.crowdfunding.service.RoleService;
 import com.xinyan.crowdfunding.service.UserService;
-//用户控制controller
+
 @Controller
 @RequestMapping("/user")
 public class UserController {
